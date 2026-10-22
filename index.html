@@ -1,0 +1,619 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Project 2 Report: U.S. Life Expectancy</title>
+        <style>
+            :root {
+                --color-neutral-95: hsl(220 10% 95%);
+                --color-neutral-90: hsl(220 10% 90%);
+                --color-neutral-80: hsl(220 10% 80%);
+                --color-neutral-70: hsl(220 10% 70%);
+                --color-neutral-60: hsl(220 10% 60%);
+                --color-neutral-50: hsl(220 10% 50%);
+                --color-neutral-40: hsl(220 10% 40%);
+                --color-neutral-30: hsl(220 10% 30%);
+                --color-neutral-20: hsl(220 10% 20%);
+                --color-neutral-10: hsl(220 10% 10%);
+            }
+
+            html {
+                font: 100%/1.5 system-ui;
+                counter-reset: figure;
+                background: var(--color-neutral-95);
+                max-width: min(75vw, 80em);
+                margin: 0 auto;
+            }
+
+            /* Headings */
+
+            h1,
+            h2,
+            h3,
+            h4,
+            h5,
+            h6 {
+                line-height: 1.1;
+                font-weight: 600;
+                text-wrap: balance;
+            }
+
+            h1,
+            h2 {
+                border-bottom: 1px solid var(--color-neutral-80);
+                padding-bottom: 0.2em;
+            }
+
+            h1 {
+                margin-block: 1em 0.5rem;
+                font-size: clamp(2.5em, 150% + 2vh + 2vw, 10vmin);
+                font-weight: 800;
+
+                small {
+                    display: block;
+                    width: fit-content;
+                    padding: 0.2em 0.5em;
+                    margin-inline: auto;
+                    color: white;
+                    background: var(--color-neutral-40);
+                    font-size: 40%;
+                    text-transform: uppercase;
+                    white-space: nowrap;
+                }
+            }
+
+            h2 {
+                font-size: 180%;
+                color: var(--color-neutral-30);
+            }
+
+            h3 {
+                font-size: 130%;
+            }
+
+
+            ul,
+            ol {
+                padding-inline-start: 2em;
+            }
+
+            li {
+                &::marker {
+                    color: var(--color-neutral-40);
+                }
+
+                + li {
+                    margin-top: 0.2em;
+                }
+            }
+
+
+            header {
+                padding-block: 1em;
+                text-align: center;
+            }
+
+            main {
+                background: white;
+                color: var(--color-neutral-20);
+                border-radius: 1rem;
+                padding: 0.1rem 2rem;
+            }
+
+
+            figure {
+                margin: 1em 0;
+                padding: 0.5rem;
+                margin-inline: -0.5em;
+                border: 1px solid var(--color-neutral-80);
+                box-shadow: 0 0.1em 0.2em var(--color-neutral-95);
+                text-align: center;
+                background: white;
+
+                > figcaption {
+                    font: 500 75% var(--font-sans);
+                    background: var(--color-neutral-95);
+                    padding: 0.5rem;
+                    margin: -0.5rem;
+                    margin-top: 0.5rem;
+                    counter-increment: figure;
+                    text-align: left;
+
+                    &::before {
+                        content: "Figure " counter(figure) ": ";
+                        font-weight: bold;
+                        color: var(--color-neutral-40);
+                    }
+
+                    a:not(:hover, :focus, :active) {
+                        color: inherit;
+                        text-decoration: underline;
+                        text-decoration-color: color-mix(
+                            in lab,
+                            currentColor,
+                            transparent 70%
+                        );
+                    }
+                }
+            }
+
+
+            img {
+                display: block;
+                max-width: 100%;
+                height: auto;
+            }
+
+            .scale-note,
+            .source {
+                color: var(--color-neutral-40);
+                font-size: 90%;
+            }
+
+            ol.decisions > li + li {
+                margin-top: 0.8em;
+            }
+
+            .view-buttons {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 0.5rem;
+                margin-bottom: 0.75rem;
+
+                button {
+                    font: inherit;
+                    font-size: 85%;
+                    padding: 0.35em 0.9em;
+                    border: 1px solid var(--color-neutral-70);
+                    border-radius: 999px;
+                    background: white;
+                    color: var(--color-neutral-30);
+                    cursor: pointer;
+
+                    &[aria-pressed="true"] {
+                        background: var(--color-neutral-20);
+                        border-color: var(--color-neutral-20);
+                        color: white;
+                    }
+
+                    &:focus-visible {
+                        outline: 2px solid #1d3955;
+                        outline-offset: 2px;
+                    }
+                }
+            }
+
+            .chart {
+                position: relative;
+
+                svg {
+                    display: block;
+                    width: 100%;
+                    font-family: system-ui;
+                }
+
+                .axis text,
+                .axis-label {
+                    fill: #617287;
+                    font-size: 12px;
+                }
+
+                .axis path,
+                .axis line {
+                    stroke: #9eb0c0;
+                }
+
+                .grid line {
+                    stroke: #dce3e9;
+                }
+
+                .grid path {
+                    display: none;
+                }
+
+                .series {
+                    fill: none;
+                    stroke: #1d3955;
+                    stroke-width: 2.5;
+                    stroke-linejoin: round;
+                }
+
+                .callout circle {
+                    fill: #1d3955;
+                    stroke: white;
+                    stroke-width: 2;
+                }
+
+                .callout text {
+                    fill: #1d3955;
+                    font-size: 13px;
+                    font-weight: 600;
+                }
+
+                .track text {
+                    fill: white;
+                    font-size: 11px;
+                    font-weight: 700;
+                }
+
+                .hover line {
+                    stroke: var(--color-neutral-60);
+                    stroke-dasharray: 3 3;
+                }
+
+                .hover circle {
+                    fill: #1d3955;
+                    stroke: white;
+                    stroke-width: 2;
+                }
+
+                .overlay {
+                    fill: transparent;
+                }
+
+                .tooltip {
+                    position: absolute;
+                    pointer-events: none;
+                    padding: 0.35em 0.6em;
+                    background: white;
+                    border: 1px solid var(--color-neutral-80);
+                    border-radius: 6px;
+                    box-shadow: 0 2px 8px rgb(0 0 0 / 0.12);
+                    color: var(--color-neutral-20);
+                    font-size: 80%;
+                    line-height: 1.4;
+                    text-align: left;
+                    white-space: nowrap;
+                }
+            }
+
+            .view-note {
+                margin: 0.5rem 0 0.25rem;
+                color: var(--color-neutral-30);
+            }
+
+            details.data-table {
+                margin-top: 0.5rem;
+                text-align: left;
+                font-size: 85%;
+
+                summary {
+                    cursor: pointer;
+                    color: var(--color-neutral-40);
+                }
+
+                table {
+                    margin-top: 0.5rem;
+                    border-collapse: collapse;
+                    font-variant-numeric: tabular-nums;
+                }
+
+                th,
+                td {
+                    padding: 0.15em 1em 0.15em 0;
+                    text-align: right;
+                    border-bottom: 1px solid var(--color-neutral-90);
+                }
+            }
+
+            @media (max-width: 40em) {
+                html {
+                    max-width: calc(100vw - 2rem);
+                }
+
+                main {
+                    padding: 0.1rem 1rem;
+                }
+            }
+        </style>
+    </head>
+
+    <body>
+        <header>
+            <h1>
+                <small>Project 2</small>
+                Persuasive or Deceptive Visualization?
+            </h1>
+
+            <p>
+                <strong>Amrith Krishnakumar</strong> <br />
+                <strong>Matthew Do</strong> <br />
+                <strong>Venkata Mangalampeta</strong> 
+            </p>
+        </header>
+
+        <main>
+            <h2>
+                Proposition: Life expectancy in the United States has shown
+                sustained improvement since 1980.
+            </h2>
+
+            <p class="scale-note">
+                Each design decision below is scored from −2 (fully deceptive)
+                to +2 (fully earnest).
+            </p>
+
+            <section>
+                <h3>FOR the Proposition</h3>
+
+                <figure>
+                    <img
+                        src="life_expectancy_support.png"
+                        alt="Line chart titled 'Decades of rising life expectancy in America' showing U.S. life expectancy rising from 73.6 years in 1980 to 78.8 years in 2019, annotated '+5.2 years since 1980'."
+                    />
+                    <figcaption>
+                        U.S. life expectancy rose from 73.6 years in 1980 to
+                        78.8 in 2019. Darker segments mark faster yearly gains.
+                    </figcaption>
+                </figure>
+
+                <p>Design Decisions and Rationale:</p>
+
+                <ol class="decisions">
+                    <li>
+                        <strong>Selective Time Range (−1.5):</strong> We chose
+                        to display data from 1980 to 2019 and did not include
+                        2020. This highlights four decades of increasing life
+                        expectancy while excluding the decline in 2020 making
+                        the trends appear more consistently positive. Although
+                        including 2020 would provide a more complete picture, we
+                        selected 2019 to strengthen our supporting argument.
+                        This choice is somewhat deceptive as it omits
+                        information that challenges the proposition.
+                    </li>
+                    <li>
+                        <strong>
+                            Calculated Annual Changes and Color Encoding (+0.5):
+                        </strong>
+                        We calculated the year over year change in life
+                        expectancy and used that to determine the color of
+                        individual line segments. Darker green parts indicate
+                        that there is a greater annual improvement while lighter
+                        segments represent smaller gains or declines. This adds
+                        another dimension to the visualization without requiring
+                        additional charts. We considered using a single color
+                        line but chose varying color intensity to emphasize
+                        periods of faster progress. The transformation is
+                        mathematically accurate but because the declines are
+                        drawn in the palest shade, they fade into the
+                        background. We scored this +0.5 rather than higher
+                        because the color emphasis selectively reinforces
+                        positive trends.
+                    </li>
+                    <li>
+                        <strong>Truncated Y-Axis (−1):</strong> We used a
+                        y-axis beginning near 73 years rather than zero to
+                        emphasize changes in life expectancy over time. This
+                        makes the increase from 73.6 to 78.8 years more visually
+                        noticeable and strengthens the visual of long term
+                        progress. A zero starting axis would make these
+                        differences appear much smaller. Although truncated axes
+                        are common for line charts, this particular scale was
+                        chosen partly for its persuasive effect.
+                    </li>
+                    <li>
+                        <strong>Persuasive Title and Annotation (+1):</strong>
+                        We titled the visualization "Decades of Rising Life
+                        Expectancy in America" to show our intended takeaway. We
+                        also included the "+5.2 years since 1980" annotation and
+                        labeled the starting and ending values to help readers
+                        visualize and understand the magnitude of improvement in
+                        life expectancy. These annotations are also based on
+                        actual calculations and provide context without
+                        overcrowding the visualization. We chose this approach
+                        over labeling every data point because it focuses
+                        attention on the most meaningful comparison.
+                    </li>
+                </ol>
+            </section>
+
+            <section>
+                <h3>AGAINST the Proposition</h3>
+
+                <figure>
+                    <img
+                        src="life_expectancy_oppose.png"
+                        alt="Line chart titled 'U.S. life expectancy gains stalled, then reversed' showing U.S. life expectancy from 2010 to 2020, peaking at 78.8 in 2014, annotated '2014–2019: −0.05 years', then falling to 77.0 in 2020."
+                    />
+                    <figcaption>
+                        Life expectancy peaked in 2014, stalled, then fell to
+                        77.0 in 2020. Darker segments mark larger yearly drops.
+                    </figcaption>
+                </figure>
+
+                <p>Design Decisions and Rationale:</p>
+
+                <ol class="decisions">
+                    <li>
+                        <strong>Narrower Time Range (−1):</strong> We limited
+                        the visualization to 2010 through 2020 to focus on the
+                        more recent stagnation and decline in life expectancy.
+                        This makes it easier for readers to recognize that
+                        progress was not consistently sustained during the final
+                        decade of the 1960–2020 dataset. We also considered
+                        showing the entire period, but the earlier decades of
+                        improvement would make the recent decline less
+                        appealing. This filtering is deceptive because it
+                        removes the context of long term improvement.
+                    </li>
+                    <li>
+                        <strong>Truncated Y-Axis (−1.5):</strong> We narrowed
+                        the vertical scale to approximately 76.5–79.1 years,
+                        making relatively small changes appear more dramatic.
+                        This emphasizes the stagnation during the mid 2010s and
+                        the sharp decline in 2020. A wider scale would make the
+                        trend appear less severe, but we selected the narrower
+                        range to strengthen our opposing argument. The actual
+                        values remain accurate although the scale influences
+                        the reader's perception of their magnitude.
+                    </li>
+                    <li>
+                        <strong>
+                            Calculated Annual Changes and Color Encoding (+0.5):
+                        </strong>
+                        We calculated the difference in life expectancy between
+                        consecutive years and used this calculated field to
+                        color the line segments. Darker red represents larger
+                        negative changes as it draws attention to periods of
+                        decline especially between 2019 and 2020, and we added a
+                        small key that explains the shading. We considered using
+                        a uniform red line, but the coloring of the slope makes
+                        the most substantial reversals stand out more clearly.
+                        The encoding accurately reflects each year's change, but
+                        years with gains are drawn in pale pink so they fade
+                        into the background, which is why we scored it +0.5
+                        rather than higher.
+                    </li>
+                    <li>
+                        <strong>Persuasive Title (+1):</strong> We used the
+                        title "U.S. Life Expectancy Gains Stalled, Then
+                        Reversed" to emphasize the drop in long term progress.
+                        The title accurately describes 2010 to 2020, but it
+                        tells readers what to conclude before they look at the
+                        data. We considered a neutral title such as "U.S. Life
+                        Expectancy, 2010–2020," but it would leave the argument
+                        entirely to the reader.
+                    </li>
+                    <li>
+                        <strong>Peak-Anchored Plateau Annotation (−1):</strong>
+                        We annotated the change from 2014 to 2019, a decrease of
+                        about 0.05 years, and drew a dashed line at the 2014
+                        level to show that 2019 never returned to it. We chose
+                        2014 because it is the highest value between 2010 and
+                        2019. Also starting from any other year in that range
+                        would show a small gain by 2019. The calculation is
+                        correct, but placing it at the peak makes a flat period
+                        look like a decline so we consider this choice
+                        deceptive. We still preferred it to labeling every
+                        annual fluctuation because it gives a concise summary
+                        that supports our argument that progress had stalled
+                        before the sharp decline in 2020.
+                    </li>
+                </ol>
+            </section>
+
+            <section>
+                <h2>The Full Picture</h2>
+
+                <p>
+                    Both charts above use the same World Bank series. Switch
+                    views below to apply each chart's time window and y-axis to
+                    the full record, which the World Bank now reports through
+                    2024.
+                </p>
+
+                <figure>
+                    <div class="view-buttons" role="group" aria-label="Chart view">
+                        <button type="button" data-view="full" aria-pressed="true">
+                            Full record, 1980–2024
+                        </button>
+                        <button type="button" data-view="for" aria-pressed="false">
+                            FOR chart's view, 1980–2019
+                        </button>
+                        <button type="button" data-view="against" aria-pressed="false">
+                            AGAINST chart's view, 2010–2020
+                        </button>
+                    </div>
+
+                    <div id="full-picture-chart" class="chart"></div>
+
+                    <p class="view-note" data-view="full">
+                        From 1980 to 2024, life expectancy rose 5.3 years
+                        overall. The 2.5-year drop in 2020–21 was fully
+                        recovered by 2024.
+                    </p>
+                    <p class="view-note" data-view="for" hidden>
+                        Leaves out 2020–2024, including the 2.5-year drop in
+                        2020–21.
+                    </p>
+                    <p class="view-note" data-view="against" hidden>
+                        Leaves out the 4.9 years gained from 1980 to 2010 and
+                        the recovery to a record 78.9 in 2024.
+                    </p>
+
+                    <details class="data-table" id="full-picture-table">
+                        <summary>Show the data</summary>
+                    </details>
+
+                    <figcaption>
+                        Switch views to see what each chart leaves out.
+                    </figcaption>
+                </figure>
+            </section>
+
+            <section>
+                <h2>Final Reflection</h2>
+
+                <p>
+                    Throughout this project, we learned how much the design of a
+                    visualization can influence the way people interpret the
+                    same dataset. One of the more straightforward parts was
+                    identifying the overall trends in U.S. life expectancy,
+                    since the data clearly showed both long term improvement and
+                    recent stagnation. However, the more difficult part was
+                    figuring out how to make two opposing arguments using the
+                    same data without changing any of the actual values. We
+                    experimented with different time ranges, axis scales,
+                    annotations, and color encodings to emphasize certain
+                    patterns. We found that even relatively simple design
+                    choices could significantly change the message communicated
+                    by a visualization.
+                </p>
+
+                <p>
+                    What surprised us most was how convincing both perspectives
+                    could be despite using the exact same World Bank data. By
+                    ending our supporting visualization in 2019, we were able to
+                    emphasize decades of improvement. On the other hand,
+                    focusing on 2010–2020 in our opposing visualization made the
+                    stagnation and decline much more noticeable. We also found
+                    that coloring line segments according to annual changes
+                    helped direct attention toward specific trends without
+                    needing additional charts. This showed us that deception in
+                    visualization is not only caused by manipulating data or
+                    presenting incorrect information. Instead, it can happen by
+                    selectively presenting accurate information in ways that
+                    encourage readers to reach a particular conclusion. We saw
+                    this again after finishing our charts as the World Bank's
+                    latest release extends to 2024 which was when U.S. life
+                    expectancy reached a record 78.9 years. Even our opposing
+                    chart's end year is able to hide that recovery, so every
+                    time window we chose was part of the argument.
+                </p>
+
+                <p>
+                    After completing this project, we would define ethical data
+                    visualization as presenting information in a way that is
+                    accurate, understandable, and transparent about the
+                    decisions that influence its interpretation. We believe
+                    persuasive design choices are acceptable when they help
+                    readers identify meaningful patterns without completely
+                    misrepresenting the data. However, those choices become
+                    misleading when important context is intentionally excluded
+                    or when visual scales exaggerate trends enough to create the
+                    wrong impression. Our own visualizations demonstrate how
+                    difficult it can be to draw a clear boundary between
+                    persuasion and deception, since many of the same techniques
+                    can serve both purposes. Ultimately, we learned that
+                    creating an ethical visualization requires considering not
+                    only whether the data is accurate, but also whether the
+                    overall message gives readers a fair understanding of what
+                    the data represents.
+                </p>
+            </section>
+
+            <p class="source">
+                <strong>Data source:</strong> World Bank, World Development
+                Indicators, <em>Life expectancy at birth, total (years)</em>
+                (<code>SP.DYN.LE00.IN</code>), United States. The FOR and
+                AGAINST charts use 1980–2020; The Full Picture uses the World
+                Bank's release through 2024.
+            </p>
+        </main>
+
+        <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+        <script src="full-picture.js"></script>
+    </body>
+</html>
